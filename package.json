@@ -1,20 +1,18 @@
 {
   "name": "wrike-basic-api-integration",
   "version": "1.0.0",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "node index",
-    "dev": "nodemon index"
+    "start": "node --loader ts-node/esm index.ts",
+    "dev": "npx ts-node index.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "axios": "^1.7.9",
-    "dotenv": "^16.4.7"
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
-  },
-  "description": ""
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.1",
+    "@types/node": "^20.0.0"
+  }
 }
