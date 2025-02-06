@@ -35,7 +35,7 @@ Generate a Permanent Access Token and copy it.
 Configuration
   
 Add your Wrike Access Token to the .env file:
-WRIKE_ACCESS_TOKEN=your_access_token_here  
+WRIKE_API_TOKEN=your_access_token_here  
 
 How to Run
 
