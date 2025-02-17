@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import fs from "fs/promises";
 import dotenv from "dotenv";
@@ -55,12 +54,10 @@ interface StructuredFolder {
 }
 
 async function fetchData<T>(endpoint: string, params: string = ""): Promise<T[]> {
-
   const response = await axios.get(`${BASE_URL}/${endpoint}${params}`, {
     headers: { Authorization: `Bearer ${API_TOKEN}` },
   });
   return response.data.data;
-
 }
 
 async function saveToFile(filename: string, data: unknown): Promise<void> {
@@ -85,34 +82,39 @@ async function fetchAndProcessData(): Promise<void> {
       {
         id: contact.id,
         name: `${contact.firstName} ${contact.lastName}`,
-        email: contact.profiles[0]?.email || "",
+        email: contact.profiles[0]?.email,
       },
     ])
   );
 
-  const tasksMap = new Map<string, StructuredTask>(
-    tasks.map(task => [
-      task.id,
-      {
-        id: task.id,
-        title: task.title,
-        status: task.status,
-        createdDate: task.createdDate,
-        updatedDate: task.updatedDate,
-        permalink: task.permalink,
-        assignees: (task.responsibleIds || [])
-          .map(id => contactsMap.get(id))
-          .filter(Boolean) as { id: string; name: string; email?: string }[],
-      },
-    ])
-  );
+  const parentIdMap = new Map<string, StructuredTask[]>();
+
+  tasks.forEach(task => {
+    const structuredTask: StructuredTask = {
+      id: task.id,
+      title: task.title,
+      status: task.status,
+      createdDate: task.createdDate,
+      updatedDate: task.updatedDate,
+      permalink: task.permalink,
+      assignees: (task.responsibleIds || [])
+        .map(id => contactsMap.get(id))
+        .filter(Boolean) as { id: string; name: string; email?: string }[],
+    };
+
+    task.parentIds?.forEach(parentId => {
+      if (!parentIdMap.has(parentId)) {
+        parentIdMap.set(parentId, []);
+      }
+      parentIdMap.get(parentId)?.push(structuredTask);
+    });
+  });
 
   const structuredData: StructuredFolder[] = folders.map(folder => ({
     id: folder.id,
     title: folder.title,
     scope: folder.scope,
-    tasks: tasks.filter(task => task.parentIds?.includes(folder.id))
-      .map(task => tasksMap.get(task.id) as StructuredTask),
+    tasks: parentIdMap.get(folder.id) || [],
   }));
 
   await saveToFile("data.json", structuredData);
